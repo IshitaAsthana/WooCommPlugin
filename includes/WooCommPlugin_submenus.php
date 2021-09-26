@@ -205,9 +205,9 @@ class Submenus
 
 		// echo $hsn."<br>".$tax_rate."<br>";
 		// $myFile = plugin_dir_path( __FILE__ ) ."tax_rates.csv";
-		$myFile = plugin_dir_path( __FILE__ ) ."../public/tax_rates.csv";
-		$myFileLink = fopen($myFile, 'r');
-		$myFileContents = fread($myFileLink, filesize($myFile));
+		$myFileRead = plugin_dir_path( __FILE__ ) ."../admin/tax_rates.csv";
+		$myFileLink = fopen($myFileRead, 'r');
+		$myFileContents = fread($myFileLink, filesize($myFileRead));
 		fclose($myFileLink);
 
 		$separator = $myFileContents[96];
@@ -264,7 +264,8 @@ class Submenus
 		// echo "<br>";
 		// echo $finalContent;
 
-		$myFileLink2 = fopen($myFile, 'w+');
+		$myFileWrite = plugin_dir_path( __FILE__ ) ."../public/tax_rates_to_upload.csv";
+		$myFileLink2 = fopen($myFileWrite, 'w+');
 
 		fwrite($myFileLink2, $finalContent);
 		fclose($myFileLink2);

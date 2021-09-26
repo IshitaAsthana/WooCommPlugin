@@ -12,9 +12,6 @@
  }
 
  //Clear database stored data
- $books = get_posts( array( 'post_type' => 'book', 'numberposts' => -1) );
+ global $wpdb;
 
- foreach ( $books as $book)
- {
-     wp_delete_post( $book->ID, true );
- }
+ $wpdb->query("DROP TABLE wp_gst_data");
