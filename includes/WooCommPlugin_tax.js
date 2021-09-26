@@ -8,7 +8,7 @@ jQuery(function($) {
                 'action': 'get_states_by_ajax',
                 'state': stateid
             }
-            $.post('../wp-content/plugins/WooCommPlugin/includes/WooCommPlugin_Tax_Modifier.php', {"state": stateid}, function () {
+            $.post('../wp-content/plugins/WooCommPlugin/includes/WooCommPlugin_submenus.php', {"state": stateid}, function () {
                 
              });
              

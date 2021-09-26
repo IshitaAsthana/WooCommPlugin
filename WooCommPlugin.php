@@ -98,10 +98,10 @@ class WooCommPlugin
 	public function includes() 
 	{
 		$this->submenus = require_once( plugin_dir_path( __FILE__ ) . '/includes/WooCommPlugin_submenus.php' );
-		if (!wc_prices_include_tax ())
-        {
-			$this->tax_modifier = require_once( plugin_dir_path( __FILE__ ) . '/includes/WooCommPlugin_Tax_Modifier.php' );
-		}
+		// if (!wc_prices_include_tax ())
+        // {
+			// $this->tax_modifier = require_once( plugin_dir_path( __FILE__ ) . '/includes/WooCommPlugin_Tax_Modifier.php' );
+		// }
 
 		add_action( 'admin_menu', array( $this, 'load_menus' ), 999 ); 
 	}

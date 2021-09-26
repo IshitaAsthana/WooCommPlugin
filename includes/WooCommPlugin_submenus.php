@@ -18,6 +18,7 @@ class Submenus
 	public $Refund;
 	public $Refund1;
 	public $cartObject;
+	public $billing_location;
 
 
 	public function instance() 
@@ -49,13 +50,134 @@ class Submenus
 		// add_action('woocommerce_settings_save_tax',  array($this, 'modify_tax_csv'));
 		add_action('woocommerce_update_options'.$current_section, array($this, 'modify_tax_csv'));
 		
+		add_filter('woocommerce_countries_inc_tax_or_vat',function($arg){
+			$arg  =  __( '(incl. GST)', 'woocommerce' ) ;
+			return $arg;
+		});
+
+		add_filter( 'woocommerce_countries_ex_tax_or_vat', function($arg){
+			$arg = __('(ex. GST)','woocommerce');
+			return  $arg;
+		} );
+		
+		add_filter('woocommerce_countries_tax_or_vat',function($arg){
+			$arg = __('GST', 'woocommerce');
+			return $arg;
+		});
+
+		$this->set_billing_location();
+		add_filter('woocommerce_cart_totals_order_total_html',function($value){
+			$brk1 = strpos($value,'(');
+			$brk2 =  strpos($value,')');
+			$begin = substr($value,0,$brk1);
+			$end = substr($value,$brk2,strlen($value)-$brk2);
+			$value = $begin.$end."(includes GST)";
+
+
+			// print_r( WC()->cart->get_tax_totals());
+			return $value;
+		});
+
+		add_filter('woocommerce_cart_tax_totals',function($tax_totals){
+			$keys = array_keys($tax_totals);
+			foreach($tax_totals as $tax_object)
+			{
+				$tax_object->amount = 0.00;
+			}
+			return $tax_totals;
+		});
 		//Product hsn code
-		add_action('woocommerce_product_options_general_product_data', array( $this , 'add_product_custom_meta_box_hsn_code') );
-		add_action( 'woocommerce_process_product_meta', array($this,'save_hsn_code_field' ));
+		// add_action('woocommerce_product_options_general_product_data', array( $this , 'add_product_custom_meta_box_hsn_code') );
+		// add_action( 'woocommerce_process_product_meta', array($this,'save_hsn_code_field' ));
 		// add_filter( 'woocommerce_tax_settings', array($this, 'tax_menus_allowed') );
 		
+        add_action('wp_ajax_get_states_by_ajax', array($this,'set_billing_location'));
+        add_action('wp_ajax_nopriv_get_states_by_ajax',array($this, 'set_billing_location'));
+        // add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array($this,'change_tax_rates'),10,3 );
+		add_action( 'wp', function() {
+
+			if ( class_exists( 'woocommerce') ) {
+				if ( is_cart()) {
+					// // add_filter( 'wc_tax_enabled', '__return_false' );
+					// if(wc_prices_include_tax ())
+					// // 	add_filter('woocommerce_cart_display_prices_including_tax','__return_true');
+					// 	add_filter( 'wc_tax_enabled', '__return_false' );
+					// else
+					// add_filter( 'wc_tax_enabled', '__return_true' );
+					// 	add_filter('woocommerce_cart_display_prices_including_tax','__return_false');
+
+				}
+			}
+		
+		});
     }
 	
+	public function set_billing_location()
+    {
+		$store_location = wc_get_base_location();
+        $this->billing_location_set = 1;
+        //grab the selected state
+        if(isset($_POST["state"]))
+        {
+            $this->billing_location = $_POST['state'];
+        }
+        else
+        {
+            $this->billing_location = $store_location['state'];
+        }
+
+    }
+
+	public function change_tax_rates($item_tax_rates, $item, $cart)
+    {
+        //url check to avoid cart total change
+        $url = $_SERVER['REQUEST_URI'];
+        
+        $uri_list = array( explode('/',$url));
+        
+        global $wpdb;
+		$hsn = get_option("woocommplugin_hsn_code");
+        $rate = $wpdb->get_results("SELECT IGSTRate FROM wp_gst_data WHERE HSNCode = $hsn");
+        
+        foreach($rate as $rates)
+        {
+            if($uri_list[0][count($uri_list[0])-2]=="cart")
+            {
+                $keys = array_keys($item_tax_rates);
+                foreach($keys as $key)
+                {
+                    $item_tax_rates[$key]['rate'] = 0;
+                }  
+            }
+            else
+            {
+                // $store_location = wc_get_base_location();
+                // $this->set_billing_location();
+                // $keys = array_keys($item_tax_rates);
+                // foreach($keys as $key)
+                // {
+                //     if($this->billing_location == $store_location['state'])
+                //     {
+                //         if($item_tax_rates[$key]['label'] != "IGST")
+                //         {
+                //             $item_tax_rates[$key]['rate'] = $rates->IGSTRate/2;
+                //         }
+                //         else
+                //         {
+                //             $item_tax_rates[$key]['rate'] = $rates->IGSTRate;
+                //         }
+                //     }
+                //     else
+                //     {
+                //         $item_tax_rates[$key]['rate'] = $rates->IGSTRate;
+                //     }
+                // }
+                
+            }  
+        }
+
+        return $item_tax_rates;
+    }
 
 	public function tax_menus_allowed($settings)
 	{
