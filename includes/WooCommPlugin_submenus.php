@@ -38,13 +38,16 @@ class Submenus
 		// $this->Refund = include( 'WooCommPlugin_Refund_Policy_submenu.php');
 		$this->Refund1 = include( 'WooCommPlugin_Terms_and_Conditions_post_type.php');
 
+		global $current_section;
 		// Invoice menu item
 		// add_action( 'load_menus', array( $this, 'invoice_settings' ), 999 ); // Add menu\
 		//Tax menu
-		// add_action( 'load_menus', array( $this, 'woocommplugin_tax_menu' ), 999 ); // Add menu\
+		add_action( 'load_menus', array( $this, 'woocommplugin_tax_menu' ), 999 ); // Add menu\
 		//add checkbox to use GST settings
 		add_filter( 'woocommerce_tax_settings', array($this, 'tax_setting_for_gst') );
 
+		// add_action('woocommerce_settings_save_tax',  array($this, 'modify_tax_csv'));
+		add_action('woocommerce_update_options_tax_'.$current_section, array($this, 'modify_tax_csv'));
 		
 		//Product hsn code
 		add_action('woocommerce_product_options_general_product_data', array( $this , 'add_product_custom_meta_box_hsn_code') );
@@ -64,6 +67,13 @@ class Submenus
 		}
 		
 		return $settings;
+	}
+
+	public function modify_tax_csv()
+	{
+		$hsn = get_option("woocommplugin_hsn_code");
+		// echo $hsn;
+		// print_r($hsn);
 	}
 
 	// public function invoice_settings() 
@@ -100,7 +110,7 @@ class Submenus
         array_push($res,array(
 			'title'   => __( 'HSN code', 'woocommerce' ),
 			'desc'    => __( 'HSN code for the category of products to be sold in the shop.', 'woocommerce' ),
-			'id'      => 'woocommplugin_use_default_gst',
+			'id'      => 'woocommplugin_hsn_code',
 			'default' => 'yes',
 			'type'    => 'number',
         ));
@@ -112,33 +122,33 @@ class Submenus
 		return $res;
 	}
 
-	// public function woocommplugin_tax_menu()
-	// {
-	// 	$parent_slug = 'edit.php?post_type=product';
+	public function woocommplugin_tax_menu()
+	{
+		$parent_slug = 'edit.php?post_type=product';
 
-	// 	$this->options_page_hook = add_submenu_page(
-	// 		$parent_slug,
-	// 		'Tax',
-	// 		'Tax',
-	// 		'manage_woocommerce',
-	// 		'woocommplugin_tax_submenu',
- //            array($this,'woocommplugin_tax_callback')
-	// 	);
-	// }
+		$this->options_page_hook = add_submenu_page(
+			$parent_slug,
+			'Tax',
+			'Tax',
+			'manage_woocommerce',
+			'woocommplugin_tax_submenu',
+            array($this,'woocommplugin_tax_callback')
+		);
+	}
 
-	// public function woocommplugin_tax_callback()
-	// {
-	// 	$settings_tabs = apply_filters( 'woocommplugin_tax_tabs', array (
-	// 			'Tax_Sample'	=> __('Tax Samples', 'woocommplugin' ),
-	// 		)
-	// 	);
+	public function woocommplugin_tax_callback()
+	{
+		$settings_tabs = apply_filters( 'woocommplugin_tax_tabs', array (
+				'Tax_Sample'	=> __('Tax Samples', 'woocommplugin' ),
+			)
+		);
 		
-	// 	$active_tab1 = isset( $_GET[ 'tab' ] ) ? sanitize_text_field( $_GET[ 'tab' ] ) : 'TnC';
-	// 	$active_section1 = isset( $_GET[ 'section' ] ) ? sanitize_text_field( $_GET[ 'section' ] ) : '';
+		$active_tab1 = isset( $_GET[ 'tab' ] ) ? sanitize_text_field( $_GET[ 'tab' ] ) : 'TnC';
+		$active_section1 = isset( $_GET[ 'section' ] ) ? sanitize_text_field( $_GET[ 'section' ] ) : '';
 
-	// 	include('views/check1.php');
+		include('views/check1.php');
 		
-	// }
+	}
 	
     public function add_product_custom_meta_box_hsn_code() {
         woocommerce_wp_text_input( 

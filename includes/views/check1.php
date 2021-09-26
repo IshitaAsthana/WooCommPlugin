@@ -179,32 +179,32 @@ $state = wc_get_base_location();
 
 ?>
 <?php  
-    $args = array(
-        'post_type'      => 'product',
-        'posts_per_page' => 10,
-    );
+//     $args = array(
+//         'post_type'      => 'product',
+//         'posts_per_page' => 10,
+//     );
 
-    $loop = new WP_Query( $args );
+//     $loop = new WP_Query( $args );
 
-    while ( $loop->have_posts() ) : $loop->the_post();
-        global $product;
-        // echo '<br /><a href="'.get_permalink().'">' . woocommerce_get_product_thumbnail().' '.get_the_title().'</a>';
-        // echo $product['title'];
-        $hsn_code = $product->get_meta('hsn_prod_id');
-    endwhile;
+//     while ( $loop->have_posts() ) : $loop->the_post();
+//         global $product;
+//         // echo '<br /><a href="'.get_permalink().'">' . woocommerce_get_product_thumbnail().' '.get_the_title().'</a>';
+//         // echo $product['title'];
+//         $hsn_code = $product->get_meta('hsn_prod_id');
+//     endwhile;
 
-    // echo 'hi';
-    global $woocommerce, $post;
+//     // echo 'hi';
+//     global $woocommerce, $post;
 
-$order = new WC_Order('19');
+// $order = new WC_Order('19');
 
-//to escape # from order id 
+// //to escape # from order id 
 
-// $order_id = trim(str_replace('#', '', $order->get_order_number()));
-// echo $order;
-// echo $order_id;
+// // $order_id = trim(str_replace('#', '', $order->get_order_number()));
+// // echo $order;
+// // echo $order_id;
 
-    wp_reset_query();
+//     wp_reset_query();
 ?>
 <?php
 // add_filter( 'woocommerce_cart_taxes_total', function($total, $compound, $display, $mycart){
@@ -255,14 +255,66 @@ $order = new WC_Order('19');
 //         echo $cart_object
 // }
 
-// $file = fopen(".\\tax_rates.csv", "r");
+// $file = fopen("tax_rates.csv", "r");
 // $myFileContents = fread($file, filesize(".\\tax_rates.csv"));
 // echo $myFileContents;
-// // fclose($file);
-// $myFile = plugin_dir_path( __FILE__ ) ."tax_rates.csv";
-// $myFileLink = fopen($myFile, 'r');
-// $myFileContents = fread($myFileLink, filesize($myFile));
-// fclose($myFileLink);
+// fclose($file);
+
+$hsn = get_option("woocommplugin_hsn_code");
+$store_location = wc_get_base_location();
+global $wpdb;
+$rate = $wpdb->get_results("SELECT IGSTRate FROM wp_gst_data WHERE HSNCode = $hsn");
+$tax_rate = 0.0;
+foreach($rate as $rates)
+{
+    $tax_rate = $rates->IGSTRate;
+}
+
+echo $hsn."<br>".$tax_rate."<br>";
+$myFile = plugin_dir_path( __FILE__ ) ."tax_rates.csv";
+$myFileLink = fopen($myFile, 'r');
+$myFileContents = fread($myFileLink, filesize($myFile));
+fclose($myFileLink);
+
+$separator = $myFileContents[97];
+$data = array();
+$first_line = substr($myFileContents,0,96);
+$keys = explode(',',$first_line);
+// print_r($keys);
+
+$rest_lines = substr($myFileContents,97);
+$data_lines = explode($myFileContents[96],$rest_lines);
+// print_r($data_lines);
+
+$total_data = array();
+foreach($data_lines as $individual_row)
+{
+    $array_line = explode(',',$individual_row);
+    array_push($total_data,array_combine($keys,$array_line));
+}
+// print_r($total_data);
+
+foreach($total_data as &$data_array)
+{
+    if($data_array['State code']===$store_location['state'])
+    {
+        $data_array['Rate %'] = $tax_rate/2;
+        if($data_array['Tax name']==="IGST")
+        {
+            $data_array['Tax name'] = "SGST";
+            array_push($total_data,array($data_array['Country code'],$data_array['State code'],$data_array['Postcode / ZIP'],$data_array['City'],$data_array['Rate %'],"CGST",$data_array['Priority']-1,$data_array['Compound'],$data_array['Shipping'],$data_array['Tax class']));
+            // Country code,State code,Postcode / ZIP,City,Rate %,Tax name,Priority,Compound,Shipping,Tax class
+
+        }
+    }
+    else
+    {
+        $data_array['Rate %'] = $tax_rate;
+    }
+}
+
+print_r($total_data);
+
 // // print_r($myFileContents);
 
 // $store_location = wc_get_base_location();
@@ -297,5 +349,5 @@ $order = new WC_Order('19');
 // fclose($myFileLink2);
 // endif;
 
-if(wc_prices_include_tax())
-    echo "include tax";
+// if(wc_prices_include_tax())
+//     echo "include tax";
