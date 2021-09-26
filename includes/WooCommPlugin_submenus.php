@@ -47,7 +47,7 @@ class Submenus
 		add_filter( 'woocommerce_tax_settings', array($this, 'tax_setting_for_gst') );
 
 		// add_action('woocommerce_settings_save_tax',  array($this, 'modify_tax_csv'));
-		add_action('woocommerce_update_options_tax_'.$current_section, array($this, 'modify_tax_csv'));
+		add_action('woocommerce_update_options'.$current_section, array($this, 'modify_tax_csv'));
 		
 		//Product hsn code
 		add_action('woocommerce_product_options_general_product_data', array( $this , 'add_product_custom_meta_box_hsn_code') );
