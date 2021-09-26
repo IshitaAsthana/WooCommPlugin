@@ -25,10 +25,10 @@ if ( !class_exists( 'WooCommPlugin') ) :
 
 class WooCommPlugin
 {
-	public $version = '2.9.3';
+	public $version = '1.0.0';
 	public $plugin_basename;
 	public $submenus;
-	public $tax_modifier;
+	public $tax_handler;
 
 	public $gst_table;
 
@@ -98,11 +98,8 @@ class WooCommPlugin
 	public function includes() 
 	{
 		$this->submenus = require_once( plugin_dir_path( __FILE__ ) . '/includes/WooCommPlugin_submenus.php' );
-		// if (!wc_prices_include_tax ())
-        // {
-			// $this->tax_modifier = require_once( plugin_dir_path( __FILE__ ) . '/includes/WooCommPlugin_Tax_Modifier.php' );
-		// }
-
+		$this->tax_handler = require_once( plugin_dir_path( __FILE__ ) . '/includes/WooCommPlugin_Tax_Handler.php' );
+		
 		add_action( 'admin_menu', array( $this, 'load_menus' ), 999 ); 
 	}
 
