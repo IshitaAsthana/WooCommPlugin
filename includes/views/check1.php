@@ -276,7 +276,7 @@ $myFileLink = fopen($myFile, 'r');
 $myFileContents = fread($myFileLink, filesize($myFile));
 fclose($myFileLink);
 
-$separator = $myFileContents[97];
+$separator = $myFileContents[96];
 $data = array();
 $first_line = substr($myFileContents,0,96);
 $keys = explode(',',$first_line);
@@ -302,7 +302,8 @@ foreach($total_data as &$data_array)
         if($data_array['Tax name']==="IGST")
         {
             $data_array['Tax name'] = "SGST";
-            array_push($total_data,array($data_array['Country code'],$data_array['State code'],$data_array['Postcode / ZIP'],$data_array['City'],$data_array['Rate %'],"CGST",$data_array['Priority']-1,$data_array['Compound'],$data_array['Shipping'],$data_array['Tax class']));
+            $new_row = array($data_array['Country code'],$data_array['State code'],$data_array['Postcode / ZIP'],$data_array['City'],$data_array['Rate %'],"CGST",$data_array['Priority']-1,$data_array['Compound'],$data_array['Shipping'],$data_array['Tax class']);
+            array_push($total_data,array_combine($keys,$new_row));
             // Country code,State code,Postcode / ZIP,City,Rate %,Tax name,Priority,Compound,Shipping,Tax class
 
         }
@@ -315,6 +316,24 @@ foreach($total_data as &$data_array)
 
 print_r($total_data);
 
+$new_lines = array();
+foreach($total_data as $data_row)
+{
+    $str = implode(',',$data_row);
+    array_push($new_lines,$str);
+}
+print_r($new_lines);
+
+$newFileString = implode($separator,$new_lines);
+echo $newFileString;
+$finalContent = $first_line.$separator.$newFileString;
+echo "<br>";
+echo $finalContent;
+
+$myFileLink2 = fopen($myFile, 'w+');
+
+fwrite($myFileLink2, $finalContent);
+fclose($myFileLink2);
 // // print_r($myFileContents);
 
 // $store_location = wc_get_base_location();
